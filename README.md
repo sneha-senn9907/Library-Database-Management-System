@@ -141,12 +141,9 @@ This SQL project focuses on designing and managing a library database to optimiz
 		from issued_status i inner join employees e on i.issued_emp_id=e.emp_id
 		group by e.emp_name,e.branch_id order by COUNT(issued_id) desc
 
-# 15.Write a stored procedure that updates the status of a book in the library based on its issuance. 
---The stored procedure should take the book_id as an input parameter. 
-The procedure should first check if the book is available (status = 'yes'). 
-If the book is available, it should be issued, and the status in the books table should be updated to 'no'. 
-If the book is not available (status = 'no'), the procedure should return an error message indicating that the book is currently not available.
-	create procedure book_issued
+# 15.Write a stored procedure that updates the status of a book in the library based on its issuance. The stored procedure should take the book_id as an input parameter. The procedure should first check if the book is available (status = 'yes'). If the book is available, it should be issued, and the status in the books table should be updated to 'no'. If the book is not available (status = 'no'), the procedure should return an error message indicating that the book is currently not available.
+	
+ 	create procedure book_issued
 		@p_issued_id varchar(50),
 		@p_issued_member_id varchar(50),
 		@p_issued_book_name varchar(100),
