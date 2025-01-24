@@ -17,26 +17,29 @@ This SQL project focuses on designing and managing a library database to optimiz
 --Update: Updated records in the member's table.
 --Delete: Removed records from the Issued Status table as needed.
 
---1.Insert sample records into the books table
---Create a New Book Record -- "978-1-60129-456-2', 'To Kill a Mockingbird', 'Classic', 6.00, 'yes', 'Harper Lee', 'J.B. Lippincott & Co.')"
-insert into books values('978-1-60129-456-2','To Kill a Mockingbird', 'Classic', 6.00, 'yes', 'Harper Lee', 'J.B. Lippincott & Co.')
+# 1.Insert sample records into the books table
 
---2.Read and display data from different tables
-select * from books
-select * from members
+	insert into books values('978-1-60129-456-2','To Kill a Mockingbird', 'Classic', 6.00, 'yes', 'Harper Lee', 'J.B. Lippincott & Co.')
 
---3.1.Update an Existing Member's Address
-update members set member_address='125 Oak st'where member_id='C103'
+# 2.Read and display data from different tables
 
---3.2.Adding new column in return_status
-alter table return_status add book_quality varchar(15) 
-update return_status set book_quality= 'Good' where book_quality is null
-update return_status set book_quality='Damaged' where issued_id in ('IS112', 'IS117', 'IS118')
-select * from return_status
+	select * from books
+	select * from members
 
---4.Delete a Record from the Issued Status Table 
--- Objective: Delete the record with issued_id = 'IS101' from the issued_status table. 
-delete from issued_status where issued_id='IS101'
+# 3.1.Update an Existing Member's Address
+
+	update members set member_address='125 Oak st'where member_id='C103'
+
+# 3.2.Adding new column in return_status
+
+	alter table return_status add book_quality varchar(15) 
+	update return_status set book_quality= 'Good' where book_quality is null
+	update return_status set book_quality='Damaged' where issued_id in ('IS112', 'IS117', 'IS118')
+	select * from return_status
+
+# 4.Delete a Record from the Issued Status Table 
+
+	delete from issued_status where issued_id='IS101'
 
 
 --Data Analysis and Findings
