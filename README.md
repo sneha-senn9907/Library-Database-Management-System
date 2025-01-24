@@ -5,18 +5,12 @@ This SQL project focuses on designing and managing a library database to optimiz
 
 # Objectives:
 1.	Build a structured database to manage books, members, employees, and branches efficiently.
-2.	Perform CRUD operations to maintain up-to-date records.
+2.	Perform CRUD operations (create,read,update,delete) to maintain up-to-date records.
 3.	Analyze overdue books, active members, and branch performance to identify areas for improvement.
 4.	Automate library operations like book issuance, returns, and overdue management using stored procedures.
 5.	Generate summary tables and reports for better decision-making and resource optimization.
 
 # Queries performed:
-# CRUD Operations
---Create: Inserted sample records into the books table.
---Read: Retrieved and displayed data from various tables.
---Update: Updated records in the member's table.
---Delete: Removed records from the Issued Status table as needed.
-
 # 1.Insert sample records into the books table
 
 	insert into books values('978-1-60129-456-2','To Kill a Mockingbird', 'Classic', 6.00, 'yes', 'Harper Lee', 'J.B. Lippincott & Co.')
@@ -42,23 +36,27 @@ This SQL project focuses on designing and managing a library database to optimiz
 	delete from issued_status where issued_id='IS101'
 
 
---Data Analysis and Findings
---1: Retrieve All Books Issued by a Specific Employee 
-select * from issued_status where issued_emp_id='E101'
+# --Data Analysis and Findings
+1: Retrieve All Books Issued by a Specific Employee 
 
---2.List Members Who Have Issued More Than One Book 
-select issued_emp_id,COUNT(*) as 'Number of books issued' from issued_status
-	group by issued_emp_id having count(*)>1
+	select * from issued_status where issued_emp_id='E101'
 
---3.Create Summary Tables:Generate a new tables based on query results - each book and total book_issued_cnt**
-select b.isbn,b.book_title, count(i.issued_id) as Issued_count into Summary_table from 
-	books b inner join issued_status i on b.isbn=i.issued_book_isbn
-	group by b.isbn,b.book_title 
+2.List Members Who Have Issued More Than One Book 
 
-select * from Summary_table
+ 	select issued_emp_id,COUNT(*) as 'Number of books issued' from issued_status
+		group by issued_emp_id having count(*)>1
 
---4.Retrieve All Books in a Specific Category:
-select * from books where category='Classic'
+3.Create Summary Tables:Generate a new tables based on query results - each book and total book_issued_cnt**
+
+	select b.isbn,b.book_title, count(i.issued_id) as Issued_count into Summary_table from 
+		books b inner join issued_status i on b.isbn=i.issued_book_isbn
+		group by b.isbn,b.book_title 
+
+	select * from Summary_table
+
+4.Retrieve All Books in a Specific Category:
+
+	select * from books where category='Classic'
 
 --5.Find Total Rental Income by Category.
 select category,SUM(rental_price) * COUNT(*) as Total_rental_income from books group by category
