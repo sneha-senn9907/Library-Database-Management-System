@@ -37,16 +37,16 @@ This SQL project focuses on designing and managing a library database to optimiz
 
 
 # --Data Analysis and Findings
-1: Retrieve All Books Issued by a Specific Employee 
+# 1: Retrieve All Books Issued by a Specific Employee 
 
 	select * from issued_status where issued_emp_id='E101'
 
-2.List Members Who Have Issued More Than One Book 
+# 2.List Members Who Have Issued More Than One Book 
 
  	select issued_emp_id,COUNT(*) as 'Number of books issued' from issued_status
 		group by issued_emp_id having count(*)>1
 
-3.Create Summary Tables:Generate a new tables based on query results - each book and total book_issued_cnt**
+# 3.Create Summary Tables:Generate a new tables based on query results - each book and total book_issued_cnt**
 
 	select b.isbn,b.book_title, count(i.issued_id) as Issued_count into Summary_table from 
 		books b inner join issued_status i on b.isbn=i.issued_book_isbn
@@ -54,29 +54,34 @@ This SQL project focuses on designing and managing a library database to optimiz
 
 	select * from Summary_table
 
-4.Retrieve All Books in a Specific Category:
+
+# 4.Retrieve All Books in a Specific Category:
 
 	select * from books where category='Classic'
 
---5.Find Total Rental Income by Category.
-select category,SUM(rental_price) * COUNT(*) as Total_rental_income from books group by category
+# 5.Find Total Rental Income by Category.
 
---6.List Members Who Registered in the Last 180 Days:
-select * from members where reg_date>=DATEADD(day,-180,getdate())
+	select category,SUM(rental_price) * COUNT(*) as Total_rental_income from books group by category
 
---7.List Employees with Their Branch Manager's Name and their branch details.
-select e1.emp_name,e1.emp_id,e1.position,e1.salary,b.*,e2.emp_name as manager from 
-	employees as e1 inner join branch as b on e1.branch_id = b.branch_id 
-	inner join employees as e2 on e2.emp_id = b.manager_id
+# 6.List Members Who Registered in the Last 180 Days:
 
---8. Create a Table of Expensive Books with Rental Price Above a Certain Threshold:
-select * into Expensive_books from books where rental_price >7.00
-select * from Expensive_books
+	select * from members where reg_date>=DATEADD(day,-180,getdate())
 
---9. Retrieve the List of Books Not Yet Returned
-select i.issued_book_name as Books_Not_Yet_Returned from issued_status i 
-	left join return_status r on i.issued_id=r.issued_id 
-	where r.return_id is null
+# 7.List Employees with Their Branch Manager's Name and their branch details.
+
+	select e1.emp_name,e1.emp_id,e1.position,e1.salary,b.*,e2.emp_name as manager from 
+		employees as e1 inner join branch as b on e1.branch_id = b.branch_id 
+		inner join employees as e2 on e2.emp_id = b.manager_id
+
+# 8. Create a Table of Expensive Books with Rental Price Above a Certain Threshold:
+	select * into Expensive_books from books where rental_price >7.00
+	select * from Expensive_books
+
+# 9. Retrieve the List of Books Not Yet Returned
+
+	select i.issued_book_name as Books_Not_Yet_Returned from issued_status i 
+		left join return_status r on i.issued_id=r.issued_id 
+		where r.return_id is null
 
 --10.Identify members who have overdue books (assume a 30-day return period). Display the member's_id, member's name, book title, issue date, and days overdue.
 select i.issued_member_id,
