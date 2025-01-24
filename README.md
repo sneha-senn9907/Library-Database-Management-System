@@ -83,113 +83,111 @@ This SQL project focuses on designing and managing a library database to optimiz
 		left join return_status r on i.issued_id=r.issued_id 
 		where r.return_id is null
 
---10.Identify members who have overdue books (assume a 30-day return period). Display the member's_id, member's name, book title, issue date, and days overdue.
-select i.issued_member_id,
-	   m.member_name,
-	   i.issued_book_name,
-	   i.issued_date, 
-	   DATEDIFF(DAY, i.issued_date, GETDATE()) as Days_Overdue
- 	   from members m inner join issued_status i on m.member_id=i.issued_member_id left join return_status r on i.issued_id=r.issued_id
-   	   where r.return_id is null and DATEDIFF(DAY, i.issued_date, GETDATE()) > 30
+# 10.Identify members who have overdue books (assume a 30-day return period). Display the member's_id, member's name, book title, issue date, and days overdue.
+	select i.issued_member_id,
+		   m.member_name,
+		   i.issued_book_name,
+		   i.issued_date, 
+		   DATEDIFF(DAY, i.issued_date, GETDATE()) as Days_Overdue
+	 	   from members m inner join issued_status i on m.member_id=i.issued_member_id left join return_status r on i.issued_id=r.issued_id
+	   	   where r.return_id is null and DATEDIFF(DAY, i.issued_date, GETDATE()) > 30
 
---11.Update the status of books for return in the books table to "Yes" when they are returned (based on entries in the return_status table).
-create procedure add_return_records
-	@p_return_id varchar(50), 
-	@p_issued_id VARCHAR(50), 
-	@p_book_quality VARCHAR(15)
-as
-begin
-declare @v_isbn VARCHAR(50),@v_book_name VARCHAR(100)
-	insert into return_status(return_id, issued_id, return_date, book_quality)
-	values(@p_return_id, @p_issued_id, GETDATE(), @p_book_quality)
+# 11.Update the status of books for return in the books table to "Yes" when they are returned (based on entries in the return_status table).
+	create procedure add_return_records
+		@p_return_id varchar(50), 
+		@p_issued_id VARCHAR(50), 
+		@p_book_quality VARCHAR(15)
+	as
+	begin
+	declare @v_isbn VARCHAR(50),@v_book_name VARCHAR(100)
+		insert into return_status(return_id, issued_id, return_date, book_quality)
+		values(@p_return_id, @p_issued_id, GETDATE(), @p_book_quality)
+	
+		select @v_isbn=issued_book_isbn,@v_book_name=issued_book_name from issued_status
+	    where issued_id = @p_issued_id;
+	
+	    update books
+	    set status = 'yes'
+	    where isbn= @v_isbn
+		print 'Thank you for returning the book: '+@v_book_name
+	end
+	go
+	
+	exec add_return_records 'RS138', 'IS135', 'Good'
+	exec add_return_records 'RS148', 'IS140', 'Good'
 
-	select @v_isbn=issued_book_isbn,@v_book_name=issued_book_name from issued_status
-    where issued_id = @p_issued_id;
-
-    update books
-    set status = 'yes'
-    where isbn= @v_isbn
-	print 'Thank you for returning the book: '+@v_book_name
-end
-go
-
-exec add_return_records 'RS138', 'IS135', 'Good'
-exec add_return_records 'RS148', 'IS140', 'Good'
-
---12.Branch Performance Report
+# 12.Branch Performance Report
 --Create a query that generates a performance report for each branch, showing the number of books issued, the number of books returned, and the total 
---revenue generated from book rentals.
-select b.branch_id,COUNT(i.issued_id) as Number_of_books_issued, COUNT(r.return_id) as Number_of_book_returned,SUM(bk.rental_price) as Total_Revenue
-	into Branch_performance_report from branch b inner join employees e on b.branch_id=e.branch_id 
-	inner join issued_status i on e.emp_id=i.issued_emp_id 
-	left join return_status r on i.issued_id=r.issued_id 
-	inner join books bk on i.issued_book_isbn=bk.isbn
-	group by b.branch_id 
+revenue generated from book rentals.
+	select b.branch_id,COUNT(i.issued_id) as Number_of_books_issued, COUNT(r.return_id) as Number_of_book_returned,SUM(bk.rental_price) as Total_Revenue
+		into Branch_performance_report from branch b inner join employees e on b.branch_id=e.branch_id 
+		inner join issued_status i on e.emp_id=i.issued_emp_id 
+		left join return_status r on i.issued_id=r.issued_id 
+		inner join books bk on i.issued_book_isbn=bk.isbn
+		group by b.branch_id 
 
-select * from Branch_performance_report
+	select * from Branch_performance_report
 
---13.CTAS: Create a Table of Active Members
+# 13.CTAS: Create a Table of Active Members
 -- Use CREATE TABLE AS(CTAS) statement to create a new table active_members containing members who have issued at least one book in the last 7 months.
-select distinct(m.member_id),m.member_name into Active_Members from 
-	members m inner join issued_status i on m.member_id=i.issued_member_id 
-	where DATEDIFF(MONTH, i.issued_date, GETDATE()) <=7
+	select distinct(m.member_id),m.member_name into Active_Members from 
+		members m inner join issued_status i on m.member_id=i.issued_member_id 
+		where DATEDIFF(MONTH, i.issued_date, GETDATE()) <=7
+	
+	select * from Active_Members
 
-select * from Active_Members
-
---14.Find Employees with the Most Book Issues Processed
+# 14.Find Employees with the Most Book Issues Processed
 -- Write a query to find the top 6 employees who have processed the most book issues.Display the employee name, number of books processed, and their branch.
-select top(6)e.emp_name,e.branch_id,COUNT(issued_id) as Number_of_books_issued 
-	from issued_status i inner join employees e on i.issued_emp_id=e.emp_id
-	group by e.emp_name,e.branch_id order by COUNT(issued_id) desc
+	select top(6)e.emp_name,e.branch_id,COUNT(issued_id) as Number_of_books_issued 
+		from issued_status i inner join employees e on i.issued_emp_id=e.emp_id
+		group by e.emp_name,e.branch_id order by COUNT(issued_id) desc
 
---15.Write a stored procedure that updates the status of a book in the library based on its issuance. 
+# 15.Write a stored procedure that updates the status of a book in the library based on its issuance. 
 --The stored procedure should take the book_id as an input parameter. 
---The procedure should first check if the book is available (status = 'yes'). 
---If the book is available, it should be issued, and the status in the books table should be updated to 'no'. 
---If the book is not available (status = 'no'), the procedure should return an error message indicating that the book is currently not available.
-create procedure book_issued
-	@p_issued_id varchar(50),
-	@p_issued_member_id varchar(50),
-	@p_issued_book_name varchar(100),
-	@p_issued_book_isbn varchar(50),
-	@p_issued_emp_id varchar(50)
-as begin
-declare @v_status varchar(50)
-	select @v_status=status from books
-	where isbn=@p_issued_book_isbn
+The procedure should first check if the book is available (status = 'yes'). 
+If the book is available, it should be issued, and the status in the books table should be updated to 'no'. 
+If the book is not available (status = 'no'), the procedure should return an error message indicating that the book is currently not available.
+	create procedure book_issued
+		@p_issued_id varchar(50),
+		@p_issued_member_id varchar(50),
+		@p_issued_book_name varchar(100),
+		@p_issued_book_isbn varchar(50),
+		@p_issued_emp_id varchar(50)
+	as begin
+	declare @v_status varchar(50)
+		select @v_status=status from books
+		where isbn=@p_issued_book_isbn
+	
+		if @v_status='yes'
+			begin
+				insert into issued_status(issued_id,issued_member_id,issued_book_name,issued_date,issued_book_isbn,issued_emp_id)
+				values(@p_issued_id,@p_issued_member_id,@p_issued_book_name,GETDATE(),@p_issued_book_isbn,@p_issued_emp_id)
+				update books
+				set status='no'
+				where isbn=@p_issued_book_isbn
+				print 'Book records added successfully for book isbn :'+@p_issued_book_isbn
+			end
+		else
+			begin
+				print'Sorry to inform you the book you have requested is unavailable book_isbn:'+@p_issued_book_isbn
+			end
+	end
+	go
+	exec book_issued'IS150','C107','Where the Wild Things Are','978-0-06-025492-6','E106'
+	exec book_issued'IS152','C106','The Diary of a Young Girl','978-0-375-41398-8','E105'
 
-	if @v_status='yes'
-		begin
-			insert into issued_status(issued_id,issued_member_id,issued_book_name,issued_date,issued_book_isbn,issued_emp_id)
-			values(@p_issued_id,@p_issued_member_id,@p_issued_book_name,GETDATE(),@p_issued_book_isbn,@p_issued_emp_id)
-			update books
-			set status='no'
-			where isbn=@p_issued_book_isbn
-			print 'Book records added successfully for book isbn :'+@p_issued_book_isbn
-		end
-	else
-		begin
-			print'Sorry to inform you the book you have requested is unavailable book_isbn:'+@p_issued_book_isbn
-		end
-end
-go
-exec book_issued'IS150','C107','Where the Wild Things Are','978-0-06-025492-6','E106'
-exec book_issued'IS152','C106','The Diary of a Young Girl','978-0-375-41398-8','E105'
-
---16. Write a CTAS query to create a new table that lists each member and the books they have issued but not returned within 30 days. The table should include: 
---The number of overdue books.The total fines, with each day's fine calculated at $0.50. The number of books issued by each member. The resulting table should show:
---Member ID ,Number of overdue books ,Total fines
-
-select i.issued_member_id,i.issued_book_name,i.issued_date,DATEDIFF(DAY, i.issued_date, GETDATE()) as Days_Overdue into Overdue_books_deatils from issued_status i left join return_status r on i.issued_id=r.issued_id
-	where r.return_id is null and DATEDIFF(DAY, i.issued_date, GETDATE()) > 30
-
-select issued_member_id,COUNT(issued_book_name) as Number, SUM(DATEDIFF(DAY,issued_date, GETDATE())*0.50) as Total_fine 
-	from Overdue_books_deatils group by issued_member_id
+# 16. Write a CTAS query to create a new table that lists each member and the books they have issued but not returned within 30 days. The table should include: The number of overdue books.The total fines, with each day's fine calculated at $0.50. The number of books issued by each member. The resulting table should show: Member ID ,Number of overdue books ,Total fines
+	
+	select i.issued_member_id,i.issued_book_name,i.issued_date,DATEDIFF(DAY, i.issued_date, GETDATE()) as Days_Overdue into Overdue_books_deatils from issued_status i left join return_status r on i.issued_id=r.issued_id
+		where r.return_id is null and DATEDIFF(DAY, i.issued_date, GETDATE()) > 30
+	
+	select issued_member_id,COUNT(issued_book_name) as Number, SUM(DATEDIFF(DAY,issued_date, GETDATE())*0.50) as Total_fine 
+		from Overdue_books_deatils group by issued_member_id
 
 # Key Findings:
-1.	 Analyzing issuance data can identify trends in member activity levels and popular book categories. (Queries 1, 2, 6, 13) 
+1.	Analyzing issuance data can identify trends in member activity levels and popular book categories. (Queries 1, 2, 6, 13) 
 2.	Reports on book issuance and returns enable evaluation of branch performance and resource allocation strategies. (Query 12)
-3.	Identifying overdue books and calculating associated fines helps streamline collection processes and potentially generate additional revenue. (Queries 9, 10, 16) 
+3.	Identifying overdue books and calculating associated fines helps streamline collection processes and potentially generate additional revenue. (Queries 9, 	10, 16) 
 4.	Analyzing book issuance data processed by employees can provide insights into employee workload and identify top performers. (Query 14)
 
 # Conclusion:
