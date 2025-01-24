@@ -116,9 +116,8 @@ This SQL project focuses on designing and managing a library database to optimiz
 	exec add_return_records 'RS138', 'IS135', 'Good'
 	exec add_return_records 'RS148', 'IS140', 'Good'
 
-# 12.Branch Performance Report
---Create a query that generates a performance report for each branch, showing the number of books issued, the number of books returned, and the total 
-revenue generated from book rentals.
+# 12.Branch Performance Report : Create a query that generates a performance report for each branch, showing the number of books issued, the number of books returned, and the total revenue generated from book rentals.
+
 	select b.branch_id,COUNT(i.issued_id) as Number_of_books_issued, COUNT(r.return_id) as Number_of_book_returned,SUM(bk.rental_price) as Total_Revenue
 		into Branch_performance_report from branch b inner join employees e on b.branch_id=e.branch_id 
 		inner join issued_status i on e.emp_id=i.issued_emp_id 
@@ -128,16 +127,16 @@ revenue generated from book rentals.
 
 	select * from Branch_performance_report
 
-# 13.CTAS: Create a Table of Active Members
--- Use CREATE TABLE AS(CTAS) statement to create a new table active_members containing members who have issued at least one book in the last 7 months.
+# 13.CTAS: Create a Table of Active MembersUse CREATE TABLE AS(CTAS) statement to create a new table active_members containing members who have issued at least one book in the last 7 months.
+
 	select distinct(m.member_id),m.member_name into Active_Members from 
 		members m inner join issued_status i on m.member_id=i.issued_member_id 
 		where DATEDIFF(MONTH, i.issued_date, GETDATE()) <=7
 	
 	select * from Active_Members
 
-# 14.Find Employees with the Most Book Issues Processed
--- Write a query to find the top 6 employees who have processed the most book issues.Display the employee name, number of books processed, and their branch.
+# 14.Find Employees with the Most Book Issues Processed: Write a query to find the top 6 employees who have processed the most book issues.Display the employee name, number of books processed, and their branch.
+
 	select top(6)e.emp_name,e.branch_id,COUNT(issued_id) as Number_of_books_issued 
 		from issued_status i inner join employees e on i.issued_emp_id=e.emp_id
 		group by e.emp_name,e.branch_id order by COUNT(issued_id) desc
